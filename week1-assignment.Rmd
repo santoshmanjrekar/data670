@@ -1,0 +1,118 @@
+---
+title: "DATA607-Week1- assignment loading and transforming data"
+author: "Santosh Manjrekar"
+date: "September 3, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+####In this assignment we are tasked with downloading a famous dataset about mushrooms from : https://archive.ics.uci.edu/ml/datasets/Mushroom, putting the data into a data frame such as
+
+
+##Load Data
+####Import file as CSV
+####Data has no header row so we must indicate "header=F".
+
+```{r}
+mushrooms_df<-read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data", header= FALSE, sep=",")
+head(mushrooms_df)
+```
+
+##Change column names
+```{r}
+mushrooms_df <- setNames(mushrooms_df, c("Edibility", "Cap Shape", "Cap Surface", "Cap Color", "Bruises?", "Odor", "Gill Attachment", "Gill Spacing", "Gill Size", "Gill Color", "Stalk Shape", "Stalk Root", "Stalk, surface Above Ring", "Stalk, surface below ring", "Stalk, color above ring", "Stalk, color below ring", "veil type", "veil color", "ring number", "ring type", "spore print color", "population", "habitat"))
+head(mushrooms_df)
+```
+
+
+
+####My subset will be based on Edibility, as required, and also odor, population, and habitat.
+```{r}
+subshroom_df <- subset(mushrooms_df, select= c("Edibility", "Odor", "population", "habitat"))
+head(subshroom_df)
+```
+
+####To reassign values in the dataframe the library plyr is usefull
+```{r}
+library(plyr)
+```
+
+
+##change column values to descriptive names
+####According to the data description found at the following link: (https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.names) the abbreviations are as follows:
+
+1. classes e=edible ,p=poisonous
+2. odor: almond=a,anise=l,creosote=c,fishy=y,foul=f,musty=m,none=n,pungent=p,spicy=s
+3. population:abundant=a,clustered=c,numerous=n,scattered=s,several=v,solitary=y
+4. habitat:grasses=g,leaves=l,meadows=m,paths=p,urban=u,waste=w,woods=d
+
+
+```{r}
+subshroom_df$Edibility <- revalue(subshroom_df$Edibility, c("e" = "edible"))
+subshroom_df$Edibility <- revalue(subshroom_df$Edibility, c("p" = "poisonous"))
+
+subshroom_df$Odor <- revalue(subshroom_df$Odor, c("a" = "almond"))
+subshroom_df$Odor <- revalue(subshroom_df$Odor, c("l" = "anise"))
+subshroom_df$Odor <- revalue(subshroom_df$Odor, c("c" = "creosote"))
+subshroom_df$Odor <- revalue(subshroom_df$Odor, c("y" = "fishy"))
+subshroom_df$Odor <- revalue(subshroom_df$Odor, c("f" = "foul"))
+subshroom_df$Odor <- revalue(subshroom_df$Odor, c("m" = "musty"))
+subshroom_df$Odor <- revalue(subshroom_df$Odor, c("n" = "none"))
+subshroom_df$Odor <- revalue(subshroom_df$Odor, c("p" = "pungent"))
+subshroom_df$Odor <- revalue(subshroom_df$Odor, c("s" = "spicy"))
+
+subshroom_df$population <- revalue(subshroom_df$population, c("a" = "abundant"))
+subshroom_df$population <- revalue(subshroom_df$population, c("c" = "clustered"))
+subshroom_df$population <- revalue(subshroom_df$population, c("n" = "numerous"))
+subshroom_df$population <- revalue(subshroom_df$population, c("s" = "scattered"))
+subshroom_df$population <- revalue(subshroom_df$population, c("v" = "several"))
+subshroom_df$population <- revalue(subshroom_df$population, c("y" = "solitary"))
+
+subshroom_df$habitat <- revalue(subshroom_df$habitat, c("g" = "grasses"))
+subshroom_df$habitat <- revalue(subshroom_df$habitat, c("l" = "leaves"))
+subshroom_df$habitat <- revalue(subshroom_df$habitat, c("m" = "meadows"))
+subshroom_df$habitat <- revalue(subshroom_df$habitat, c("p" = "pathes"))
+subshroom_df$habitat <- revalue(subshroom_df$habitat, c("u" = "urban"))
+subshroom_df$habitat <- revalue(subshroom_df$habitat, c("w" = "waste"))
+subshroom_df$habitat <- revalue(subshroom_df$habitat, c("d" = "woods"))
+
+head(subshroom_df)
+
+```
+
+####Let's take a look at the data to see if there are any interesting patterns. Since these data are catagorical, pie charts might be handy in looking at how the percentages edible vs poisonous is distributed. I used http://www.statmethods.net/graphs/pie.html as a guide.
+
+```{r}
+Edibility_pie <- table(subshroom_df$Edibility)
+lbls <- paste(names(Edibility_pie), "\n", Edibility_pie, sep = " ")
+pie(Edibility_pie, labels = lbls, main = "Pie Chart of Mushroom Edibility\n (with sample sizes)")
+```
+
+####Next we will look at Odor
+```{r}
+Odor_pie <- table(subshroom_df$Odor)
+lbls <- paste(names(Odor_pie) ,"\n", Odor_pie, sep = " ")
+pie(Odor_pie, labels = lbls, main = "Mushroom Odor Pie Chart\n (with sample sizes)")
+```
+
+####That's a little crowded, though I am surprised to find "none" as the largest catagory. Let's try a bar chart.
+```{r}
+odor_barplot <- table(subshroom_df$Odor)
+barplot(odor_barplot, main = "Mushroom Odor Distribution" , xlab = "Odor Types", cex.names = 0.45)
+```
+
+####I had to make the Odor type print small so all types would be visible. We will look at population next
+```{r}
+pop_barplot <- table(subshroom_df$population)
+barplot(pop_barplot, main = "Mushroom Population Distribution" , xlab = "Population Types", cex.names = 0.45)
+```
+
+####Finally we will look at habitat.
+```{r}
+hab_barplot <- table(subshroom_df$habitat)
+barplot(hab_barplot, main = "Mushroom Habitat Distribution" , xlab = "Habitat Types", cex.names = 0.45)
+```
+
